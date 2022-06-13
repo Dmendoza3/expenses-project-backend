@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ExpensesController } from './controllers/expenses/expenses/expenses.controller';
-import { CategoriesController } from './controllers/categories/categories/categories.controller';
+import { ConfigModule } from '@nestjs/config';
+import { ExpensesController } from './controllers/expenses/expenses.controller';
+import { CategoriesController } from './controllers/categories/categories.controller';
 
 @Module({
-  imports: [],
+  imports: [ConfigModule.forRoot()],
   controllers: [AppController, ExpensesController, CategoriesController],
   providers: [AppService],
 })
