@@ -19,7 +19,7 @@ This project is an expenses manager, it is a single page application that allows
 
 ## Installation
 
-1. Clone the repo and change "my-project" to your project name.
+1. Clone the repo.
 
 ```sh
   git clone https://github.com/Dmendoza3 expenses-project-backend.git ./expenses-project
@@ -36,6 +36,13 @@ This project is an expenses manager, it is a single page application that allows
 ```sh
   npm install
 ```
+
+4. Setup the database using the dump file in this project:
+
+```sh
+  ./expenses-mysql-dump.sql
+```
+  
 
 ## Usage
 
