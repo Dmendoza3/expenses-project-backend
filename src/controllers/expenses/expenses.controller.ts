@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Res, HttpStatus, Body } from '@nestjs/common';
+import { Controller, Get, Post, Res, Req, HttpStatus, Body } from '@nestjs/common';
 import { Response } from 'express';
 import * as mysql from 'mysql';
 
@@ -34,19 +34,43 @@ export class ExpensesController {
                 console.log(err);
                 res.status(HttpStatus.BAD_REQUEST).send('Error while adding expense...');
             }else
-                res.status(HttpStatus.CREATED).send('Expense added');
+                res.status(HttpStatus.CREATED).send('Expense added successfully');
         });
     }
 
     @Get()
-    findAll(@Res() res: Response){
-        let query = "select category_id, name, registered_date from expenses;";
+    findAll(@Req() req, @Res() res: Response){
+        let { date } = req.query;
 
-        conn.query(query, (err, result) => {
-            if (err) 
-                res.status(HttpStatus.BAD_REQUEST).send('Error while getting expenses...')
-            else
-                 res.status(HttpStatus.OK).json(result);
+        let date_filter = (date) ? ' where registered_date = ?': '';
+        let total_date_filter = (date) ? ' where month(registered_date) = month(?)': '';
+
+        let values = [
+            date, 
+            date
+        ];
+
+        let query = "select " + 
+        "expenses.name, concat('$ ', value) as value, DATE_FORMAT(registered_date, '%Y-%m-%d') as registered_date, categories.name as category from expenses " +
+        "left join categories on categories.id=expenses.category_id" +
+        date_filter + ";" +
+
+        "select categories.id, categories.name as category, concat('$ ', cast(sum(expenses.value) as decimal(10, 2))) as total from expenses " + 
+        "left join categories on categories.id=expenses.category_id " +
+        total_date_filter + " group by categories.id, categories.name order by sum(expenses.value) desc;";
+
+        console.log("date:", date)
+
+        conn.query(query, values, (err, result) => {
+            if (err) {
+                res.status(HttpStatus.BAD_REQUEST).send('Error while getting expenses...');
+
+                console.log(err)
+            }else
+                 res.status(HttpStatus.OK).json({
+                    data: result[0],
+                    data_sum: result[1],
+                });
         });
     }
 }

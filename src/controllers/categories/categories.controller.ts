@@ -34,7 +34,7 @@ export class CategoriesController {
 
     @Get()
     findAll(@Res() res: Response){
-        let query = "select name from categories;";
+        let query = "select id, name from categories;";
 
         conn.query(query, (err, result) => {
             if (err) 
