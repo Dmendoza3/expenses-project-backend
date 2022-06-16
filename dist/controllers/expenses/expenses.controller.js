@@ -40,16 +40,35 @@ let ExpensesController = class ExpensesController {
                 res.status(common_1.HttpStatus.BAD_REQUEST).send('Error while adding expense...');
             }
             else
-                res.status(common_1.HttpStatus.CREATED).send('Expense added');
+                res.status(common_1.HttpStatus.CREATED).send('Expense added successfully');
         });
     }
-    findAll(res) {
-        let query = "select category_id, name, registered_date from expenses;";
-        conn.query(query, (err, result) => {
-            if (err)
+    findAll(req, res) {
+        let { date } = req.query;
+        let date_filter = (date) ? ' where registered_date = ?' : '';
+        let total_date_filter = (date) ? ' where month(registered_date) = month(?)' : '';
+        let values = [
+            date,
+            date
+        ];
+        let query = "select " +
+            "expenses.name, concat('$ ', value) as value, DATE_FORMAT(registered_date, '%Y-%m-%d') as registered_date, categories.name as category from expenses " +
+            "left join categories on categories.id=expenses.category_id" +
+            date_filter + ";" +
+            "select categories.id, categories.name as category, concat('$ ', cast(sum(expenses.value) as decimal(10, 2))) as total from expenses " +
+            "left join categories on categories.id=expenses.category_id " +
+            total_date_filter + " group by categories.id, categories.name order by sum(expenses.value) desc;";
+        console.log("date:", date);
+        conn.query(query, values, (err, result) => {
+            if (err) {
                 res.status(common_1.HttpStatus.BAD_REQUEST).send('Error while getting expenses...');
+                console.log(err);
+            }
             else
-                res.status(common_1.HttpStatus.OK).json(result);
+                res.status(common_1.HttpStatus.OK).json({
+                    data: result[0],
+                    data_sum: result[1],
+                });
         });
     }
 };
@@ -63,9 +82,10 @@ __decorate([
 ], ExpensesController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    __param(0, (0, common_1.Res)()),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", void 0)
 ], ExpensesController.prototype, "findAll", null);
 ExpensesController = __decorate([
